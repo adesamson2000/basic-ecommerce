@@ -1,27 +1,80 @@
 import React from "react";
+import axios from "axios";
 import "./Login.css";
 import { ThemeContext } from "./App";
+import { useNavigate } from "react-router-dom";
 function Login() {
-  let { theme, setTheme } = React.useContext(ThemeContext);
+  let { store, setStore } = React.useContext(ThemeContext);
+  const [form, setForm] = React.useState({
+    username: "",
+    password: "",
+  });
+  const navigate = useNavigate();
   return (
-    <div className={`${theme}-container`}>
-      <form>
+    <div className={`${store.theme}-container`}>
+      <form
+        onSubmit={async (event) => {
+          event.preventDefault();
+          const response = await axios.post(
+            "https://fakestoreapi.com/auth/login",
+            form
+          );
+          const Newresponse = await axios.get(
+            "https://fakestoreapi.com/users/1"
+          );
+          setStore((store) => {
+            return {
+              ...store,
+              user: { ...Newresponse, token: response.data.token },
+            };
+          });
+          navigate("/dashboard");
+        }}
+      >
         <div className="input-group">
           <label>UserName</label>
-          <input className="input-field" type="text" name="username" />
+          <input
+            value={form.username}
+            className="input-field"
+            type="text"
+            name="username"
+            onChange={(event) =>
+              setForm((form) => {
+                return { ...form, [event.target.name]: event.target.value };
+              })
+            }
+          />
         </div>
         <div className="input-group">
           <label>Password</label>
-          <input className="input-field" type="password" name="password" />
+          <input
+            value={form.password}
+            className="input-field"
+            type="password"
+            name="password"
+            onChange={(event) =>
+              setForm((form) => {
+                return { ...form, [event.target.name]: event.target.value };
+              })
+            }
+          />
         </div>
-        <button>Login</button>
-        <span>currentTheme :{theme} </span>
-        <div
+        <button className="button">Login</button>
+        <span>currentTheme :{store.theme} </span>
+        <button
+          type="button"
           className="toggle-button"
-          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          onClick={() => {
+            setStore((store) => {
+              return {
+                ...store,
+                theme: store.theme === "light" ? "dark" : "light",
+              };
+            });
+          }}
         >
           Switch Theme
-        </div>
+        </button>
       </form>
     </div>
   );
